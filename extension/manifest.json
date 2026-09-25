@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Tarrafa",
+  "version": "2.0.0",
+  "description": "Detecta vídeo e áudio em qualquer site e baixa para a pasta que você escolher, usando yt-dlp e ffmpeg da sua máquina.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlrtVhNX3z0nVzvclWoYx/Z06KvCc+FMjOjBaaR/aviqPwvEdMAt6BMLZxxAz2dMpmNnGaeRBYG8t/C8+cMCDGiHptZP8sw4PWj7vCHfTPmFlZxaCXf8Qoqka54DEt3vWHhv+f6ZWOh7tC91gBo4vz+iCtnAW+Zg9vqKNMG6XRTC99Adr7xiCOdk3WWsBm+rTuy9Fqe1cSrY6HVqMNVZ0IYc3yfGl3Xt4dEVaZT5r0dH3BX5Cg4DojZN3hJ2/RbBndOsUUwsas1V0OKnrwd3DmA8Jy5g4MV5SeuX6Hul88LzbWp4QcUqqqmX78Rij6jFTxcS4eJ6wJaj8pi6gT5XtjwIDAQAB",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage",
+    "cookies",
+    "webRequest",
+    "webNavigation",
+    "nativeMessaging",
+    "notifications",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "app.html",
+    "default_title": "Tarrafa",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+D",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Abrir a Tarrafa"
+    }
+  },
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  }
+}

@@ -1,0 +1,10 @@
+# Chave privada que gera o ID da extensão. O manifest só precisa da pública;
+# esta serve apenas para empacotar um .crx com o mesmo ID. Nunca publicar.
+host/key.pem
+
+# Gerado pelo install.sh com os caminhos dos binários desta máquina.
+host/config.json
+
+.DS_Store
+*.log
+node_modules/

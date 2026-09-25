@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="marca">
+    <svg class="logo" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3v11m0 0 4.5-4.5M12 14l-4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>Tarrafa</span>
+  </div>
+  <div class="topo-acoes">
+    <button class="icone" id="btAba" title="Abrir em uma aba">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="nav" id="nav">
+  <button class="aba ativa" data-tela="descobrir">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Baixar
+  </button>
+  <button class="aba" data-tela="fila">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Fila <span class="pino" id="pinoFila" hidden></span>
+  </button>
+  <button class="aba" data-tela="ajustes">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4m0-12.8-1.4 1.4m-10 10-1.4 1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Ajustes
+  </button>
+</nav>
+
+<div id="alerta" class="alerta" hidden></div>
+
+<main id="conteudo">
+
+  <!-- ------------------------------------------------ TELA: DESCOBRIR -->
+  <section class="tela" data-tela="descobrir">
+    <div class="destino">
+      <div class="destino-info">
+        <span class="rotulo">Salvar em</span>
+        <span class="caminho" id="destinoAtual">~/Downloads</span>
+      </div>
+      <button class="secundario" id="btPasta">Mudar</button>
+    </div>
+
+    <div class="grupo">
+      <h2>Esta página</h2>
+      <div id="daPagina"></div>
+    </div>
+
+    <div class="grupo">
+      <h2>Detectado na rede <span class="contador" id="qtdRede"></span></h2>
+      <div id="daRede"></div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------- TELA: DETALHE -->
+  <section class="tela" data-tela="detalhe" hidden>
+    <button class="voltar" id="btVoltar">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Voltar
+    </button>
+    <div id="detalheCorpo"></div>
+  </section>
+
+  <!-- ----------------------------------------------------- TELA: FILA -->
+  <section class="tela" data-tela="fila" hidden>
+    <div class="barra-acoes">
+      <span class="rotulo" id="resumoFila"></span>
+      <button class="texto" id="btLimpar">Limpar concluídos</button>
+    </div>
+    <div id="listaFila"></div>
+  </section>
+
+  <!-- -------------------------------------------------- TELA: AJUSTES -->
+  <section class="tela" data-tela="ajustes" hidden>
+
+    <div class="secao">
+      <h3>Onde salvar</h3>
+      <div class="linha-campo">
+        <input type="text" id="ajPasta" placeholder="~/Downloads" spellcheck="false">
+        <button class="secundario" id="btPasta2">Escolher…</button>
+      </div>
+      <p class="dica">Deixe vazio para usar ~/Downloads.</p>
+
+      <h4>Pasta por site</h4>
+      <div id="regras"></div>
+      <button class="texto" id="btAddRegra">+ adicionar regra</button>
+      <p class="dica">Se o endereço contiver o texto da regra, o download vai para a pasta indicada.</p>
+    </div>
+
+    <div class="secao">
+      <h3>Formato padrão</h3>
+      <div class="campo-linha">
+        <label>O que baixar</label>
+        <div class="chips" id="ajTipo">
+          <button class="chip" data-v="video">Vídeo</button>
+          <button class="chip" data-v="audio">Só áudio</button>
+        </div>
+      </div>
+      <div class="campo-linha" id="linhaContainer">
+        <label>Contêiner</label>
+        <div class="chips" id="ajContainer">
+          <button class="chip" data-v="mkv">MKV</button>
+          <button class="chip" data-v="mp4">MP4</button>
+        </div>
+      </div>
+      <div class="campo-linha" id="linhaQualidade">
+        <label>Qualidade máxima</label>
+        <select id="ajAltura">
+          <option value="0">Melhor disponível</option>
+          <option value="2160">2160p (4K)</option>
+          <option value="1440">1440p</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+        </select>
+      </div>
+      <div class="campo-linha" id="linhaAudio">
+        <label>Formato do áudio</label>
+        <div class="chips" id="ajAudioFormato">
+          <button class="chip" data-v="original">Original</button>
+          <button class="chip" data-v="mp3">MP3</button>
+        </div>
+      </div>
+      <p class="dica">"Original" mantém o codec como veio (AAC ou Opus), sem reencodar — melhor qualidade e muito mais rápido.</p>
+    </div>
+
+    <div class="secao">
+      <h3>Legendas</h3>
+      <label class="switch"><input type="checkbox" id="ajLegAtivo"><span></span>Baixar legendas</label>
+      <div id="blocoLegendas">
+        <div class="campo-linha">
+          <label>Idiomas</label>
+          <input type="text" id="ajLegIdiomas" placeholder="pt, en" spellcheck="false">
+        </div>
+        <label class="switch"><input type="checkbox" id="ajLegAuto"><span></span>Incluir legendas automáticas</label>
+        <label class="switch"><input type="checkbox" id="ajLegEmbutir"><span></span>Embutir no arquivo (senão salva .srt ao lado)</label>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h3>SponsorBlock</h3>
+      <label class="switch"><input type="checkbox" id="ajSbAtivo"><span></span>Remover trechos automaticamente</label>
+      <div class="chips multi" id="ajSbCategorias">
+        <button class="chip" data-v="sponsor">Patrocínio</button>
+        <button class="chip" data-v="selfpromo">Autopromoção</button>
+        <button class="chip" data-v="intro">Abertura</button>
+        <button class="chip" data-v="outro">Encerramento</button>
+        <button class="chip" data-v="interaction">Pedido de like</button>
+        <button class="chip" data-v="preview">Recapitulação</button>
+        <button class="chip" data-v="music_offtopic">Trecho sem música</button>
+        <button class="chip" data-v="filler">Enrolação</button>
+      </div>
+      <p class="dica">Usa a base colaborativa do SponsorBlock. Só funciona no YouTube.</p>
+    </div>
+
+    <div class="secao">
+      <h3>Metadados</h3>
+      <label class="switch"><input type="checkbox" id="ajMdThumb"><span></span>Embutir capa</label>
+      <label class="switch"><input type="checkbox" id="ajMdInfo"><span></span>Embutir título, canal e data</label>
+      <label class="switch"><input type="checkbox" id="ajMdCap"><span></span>Embutir capítulos</label>
+      <label class="switch"><input type="checkbox" id="ajDividir"><span></span>Dividir em arquivos por capítulo</label>
+    </div>
+
+    <div class="secao">
+      <h3>Comportamento</h3>
+      <label class="switch"><input type="checkbox" id="ajPerguntarPasta"><span></span>Perguntar onde salvar a cada download</label>
+      <p class="dica">Desligado, usa a pasta padrão (e as regras por site) sem interromper.</p>
+      <label class="switch"><input type="checkbox" id="ajCookies"><span></span>Usar meus cookies do navegador</label>
+      <p class="dica">Destrava conteúdo que exige login e resolve boa parte dos erros 403. Os cookies vão para um arquivo temporário com permissão restrita, usado só durante o download e apagado logo depois.</p>
+      <label class="switch"><input type="checkbox" id="ajLive"><span></span>Gravar transmissões ao vivo desde o início</label>
+      <label class="switch"><input type="checkbox" id="ajNotificar"><span></span>Avisar quando terminar</label>
+      <label class="switch"><input type="checkbox" id="ajMenu"><span></span>Mostrar no menu do botão direito</label>
+      <div class="campo-linha">
+        <label>Downloads simultâneos</label>
+        <select id="ajSimultaneos">
+          <option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option><option value="6">6</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h3>Diagnóstico</h3>
+      <div id="diag" class="diag">carregando…</div>
+      <button class="secundario" id="btDiag">Atualizar</button>
+    </div>
+  </section>
+</main>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
