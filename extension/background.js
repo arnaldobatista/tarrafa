@@ -645,20 +645,32 @@ function mandar(msg) {
   }
 }
 
+// Pedidos sem id (como "info") usam a mesma chave. Antes, um segundo pedido
+// igual sobrescrevia a espera do primeiro, que "estourava o tempo" 20s depois e
+// mostrava erro com o host funcionando. Agora os dois esperam a mesma resposta.
+const emVoo = new Map(); // chave -> promessa em andamento
+
 function perguntar(msg, tipoResposta, ms = 120000) {
-  return new Promise((resolve) => {
-    const chave = msg.id ? `${tipoResposta}:${msg.id}` : tipoResposta;
-    const timer = setTimeout(() => {
-      respostasPendentes.delete(chave);
+  const chave = msg.id ? `${tipoResposta}:${msg.id}` : tipoResposta;
+  if (emVoo.has(chave)) return emVoo.get(chave);
+  const promessa = new Promise((resolve) => {
+    let timer;
+    const meu = (r) => { clearTimeout(timer); resolve(r); };
+    timer = setTimeout(() => {
+      // Só remove a própria espera, nunca a de um pedido mais novo.
+      if (respostasPendentes.get(chave) === meu) respostasPendentes.delete(chave);
       resolve({ erro: "o host não respondeu a tempo" });
     }, ms);
-    respostasPendentes.set(chave, (r) => { clearTimeout(timer); resolve(r); });
+    respostasPendentes.set(chave, meu);
     if (!mandar(msg)) {
       clearTimeout(timer);
       respostasPendentes.delete(chave);
-      resolve({ erro: "não consegui falar com o host — rode ./install.sh" });
+      resolve({ erro: "não consegui abrir a conexão com o host" });
     }
   });
+  emVoo.set(chave, promessa);
+  promessa.finally(() => emVoo.delete(chave));
+  return promessa;
 }
 
 // Enquanto houver download, o canal precisa continuar vivo: um service worker
@@ -1111,6 +1123,9 @@ chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
       case "info":
         return responder(await perguntar({ type: "info" }, "info", 20000));
 
+      case "codigo":
+        return responder({ codigo: (await chrome.storage.local.get("codigoDoSW")).codigoDoSW || null });
+
       default:
         return responder({ erro: "comando desconhecido" });
     }
@@ -1119,6 +1134,26 @@ chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
 });
 
 // ------------------------------------------------------------- inicialização
+
+// O Chrome guarda o service worker quando ele é instalado e não relê o
+// background.js quando o arquivo muda. As telas, ao contrário, leem do disco a
+// cada abertura. Resultado: interface nova conversando com código velho até
+// alguém recarregar a extensão (foi assim que um service worker de antes da
+// troca de nome ficou pedindo um host que não existia mais). Na instalação,
+// guardamos a impressão digital do arquivo que virou este service worker; a
+// interface compara com o que está no disco e oferece a recarga.
+async function impressaoDoCodigo() {
+  const texto = await (await fetch(chrome.runtime.getURL("background.js"), { cache: "no-store" })).text();
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+self.addEventListener("install", (e) => {
+  // Nunca rejeita: instalação que falha deixa a extensão sem service worker.
+  e.waitUntil(impressaoDoCodigo()
+    .then((codigo) => chrome.storage.local.set({ codigoDoSW: codigo }))
+    .catch(() => {}));
+});
 
 chrome.runtime.onInstalled.addListener(async () => {
   await carregarAjustes();

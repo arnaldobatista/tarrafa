@@ -74,6 +74,8 @@ O ID da extensão é sempre `dmofiaiidmkialeopkpcknbaapkohfmn`, fixado pela chav
 
 > **Por que o host é copiado para fora do repositório:** o macOS protege `~/Documents`, `~/Desktop` e `~/Downloads`, e o navegador não consegue executar um host nativo guardado ali. A falha aparece só como `Native host has exited`, sem nenhuma linha no log. Por isso, **se você editar `host/host.js`, rode `./install.sh` de novo.**
 
+> **Depois de atualizar os arquivos (`git pull` ou edição), recarregue a extensão.** As telas leem os arquivos novos na hora, mas o Chrome continua rodando o `background.js` anterior até a extensão ser recarregada. A Tarrafa percebe a diferença e mostra o botão **Recarregar extensão**; o ↻ em `chrome://extensions` faz o mesmo.
+
 ## Uso
 
 Clique no ícone da extensão ou use **⌘⇧U** (**Alt+Shift+D** fora do Mac).
@@ -118,6 +120,7 @@ tail -30 ~/Library/Logs/tarrafa.log
 - **`403` no YouTube** — veja se o log mostra `No supported JavaScript runtime` logo antes. Se sim, falta o `deno`.
 - **`429`** — o site está limitando requisições. Espere alguns minutos.
 - **`Native host has exited` sem nenhuma linha nova no log** — o host nem chegou a rodar. Rode `./install.sh`.
+- **`Specified native messaging host not found` logo depois de atualizar** — é o `background.js` anterior ainda rodando. Recarregue a extensão (botão no aviso ou ↻ em `chrome://extensions`). Se continuar, rode `./install.sh`.
 - **Um site que funcionava parou** — quase sempre o `yt-dlp` envelheceu. A tela de Ajustes avisa quando ele está velho.
 
   ```bash

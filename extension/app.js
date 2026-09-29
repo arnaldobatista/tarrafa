@@ -59,10 +59,11 @@ function encurtarCaminho(p) {
   return p.replace(/^\/Users\/[^/]+/, "~");
 }
 
-function alertar(texto, ruim = false) {
+function alertar(texto, ruim = false, acao = null) {
   const a = $("#alerta");
   if (!texto) { a.hidden = true; return; }
-  a.textContent = texto;
+  a.replaceChildren(texto);
+  if (acao) a.append(el("button", { class: "secundario", onclick: acao.fazer }, acao.rotulo));
   a.classList.toggle("ruim", ruim);
   a.hidden = false;
 }
@@ -855,13 +856,77 @@ $("#btAddRegra").addEventListener("click", () => {
 });
 
 // --- diagnóstico
+function dicaDoHost(motivo) {
+  if (/not found/i.test(motivo)) return "o registro do host não foi encontrado. Rode ./install.sh no terminal.";
+  if (/forbidden/i.test(motivo)) return "esta extensão não está autorizada no registro. Rode ./install.sh e recarregue a extensão.";
+  if (/exited|failed to start/i.test(motivo)) return "o host fechou ao abrir. Rode ./install.sh; se continuar, veja ~/Library/Logs/tarrafa.log.";
+  if (/a tempo/.test(motivo)) return "o host demorou demais. Recarregue a extensão e tente de novo.";
+  if (/receiving end|message port closed|service worker/i.test(motivo)) return "o código em segundo plano da extensão não está rodando. Recarregue a extensão em chrome://extensions.";
+  return "rode ./install.sh no terminal e recarregue a extensão.";
+}
+
+// Um service worker que não sobe deixa o sendMessage pendurado para sempre,
+// sem erro nenhum; sem prazo, a tela ficaria em "consultando…" eternamente.
+function falarComPrazo(msg, ms) {
+  return Promise.race([
+    falar(msg).catch((e) => ({ erro: e?.message || String(e) })),
+    new Promise((ok) => setTimeout(() => ok({ erro: "o service worker da extensão não respondeu" }), ms)),
+  ]);
+}
+
+// Esta tela acabou de ser lida do disco; o service worker pode estar rodando
+// um background.js mais antigo (veja impressaoDoCodigo no background.js).
+// Devolve "igual", "diferente" (um service worker velho nem conhece o comando
+// "codigo" e também cai aqui) ou "mudo".
+async function conferirCodigo() {
+  const r = await falarComPrazo({ cmd: "codigo" }, 5000);
+  if (r?.erro && !/desconhecido/.test(r.erro)) return "mudo";
+  try {
+    const texto = await (await fetch("background.js", { cache: "no-store" })).text();
+    const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
+    const noDisco = [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    return r?.codigo === noDisco ? "igual" : "diferente";
+  } catch {
+    return "igual"; // sem ler o disco não dá para acusar nada
+  }
+}
+
+async function estadoDoServiceWorker() {
+  // Logo depois de uma recarga o Chrome ainda pode estar trocando o service
+  // worker: só conta se a diferença continuar um segundo depois.
+  const primeiro = await conferirCodigo();
+  if (primeiro !== "diferente") return primeiro;
+  await new Promise((r) => setTimeout(r, 1000));
+  return conferirCodigo();
+}
+
 async function carregarDiagnostico() {
   const d = $("#diag");
   d.textContent = "consultando o host…";
-  const r = await falar({ cmd: "info" });
+  const sw = await estadoDoServiceWorker();
+  if (sw !== "igual") {
+    // Qualquer erro do host agora viria do código errado e mandaria a pessoa
+    // atrás da causa errada. Primeiro recarrega; depois se vê.
+    const mudo = sw === "mudo";
+    d.replaceChildren(
+      el("span", { class: "ruim" }, mudo ? "o código em segundo plano não respondeu" : "código em segundo plano desatualizado"),
+      el("br"),
+      mudo ? "recarregue a extensão; se continuar, veja os erros em chrome://extensions"
+        : "recarregue a extensão para ele ler os arquivos novos");
+    alertar(mudo
+      ? "A parte da extensão que roda em segundo plano não respondeu. Recarregue; se continuar, os erros aparecem em chrome://extensions."
+      : "Os arquivos da extensão mudaram, mas o Chrome ainda roda a versão anterior em segundo plano. Recarregue: esta janela fecha, é só abrir de novo.",
+      true, { rotulo: "Recarregar extensão", fazer: () => chrome.runtime.reload() });
+    return;
+  }
+  const r = await falarComPrazo({ cmd: "info" }, 25000);
   if (!r || r.erro) {
-    d.innerHTML = `<span class="ruim">${r?.erro || "host não respondeu"}</span><br>Rode <b>./install.sh</b> e recarregue a extensão.`;
-    alertar("O host nativo não respondeu. Rode ./install.sh no terminal.", true);
+    // O Chrome diz exatamente o que houve, e cada caso tem uma solução
+    // diferente. Esconder isso atrás de uma frase genérica só atrasa o conserto.
+    const motivo = r?.erro || "o service worker da extensão não respondeu";
+    const dica = dicaDoHost(motivo);
+    d.replaceChildren(el("span", { class: "ruim" }, motivo), el("br"), dica);
+    alertar(`O host nativo não respondeu: ${motivo} — ${dica}`, true);
     return;
   }
   estado.diagHome = r.home;
