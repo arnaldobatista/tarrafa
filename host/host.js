@@ -263,6 +263,15 @@ function argsBase(msg) {
   return args;
 }
 
+// O log é o que as pessoas colam quando pedem ajuda. A sessão e o token que a
+// página usou vão para o yt-dlp, mas não podem ficar gravados nele.
+function argsParaLog(args) {
+  return args.map((a, i) => {
+    if (args[i - 1] === "--add-header" && /^(cookie|authorization):/i.test(a)) a = a.replace(/:.*/s, ": [oculto]");
+    return /[ "]/.test(a) ? JSON.stringify(a) : a;
+  }).join(" ");
+}
+
 function seletorFormato(o) {
   if (o.tipo === "audio") return "ba/b";
 
@@ -496,6 +505,9 @@ async function buscarTexto(msg) {
 function miniatura(msg) {
   const id = msg.id;
   if (!FFMPEG) return enviar({ type: "miniatura", id, ok: false });
+  // A URL vem do que a página mostrou. O ffmpeg abriria também file: e outros
+  // protocolos locais; miniatura só faz sentido para o que veio da rede.
+  if (!/^https?:\/\//i.test(msg.url || "")) return enviar({ type: "miniatura", id, ok: false });
 
   const args = ["-hide_banner", "-loglevel", "error", "-y"];
   const cab = Object.entries(msg.cabecalhos || {})
@@ -634,7 +646,7 @@ function baixar(msg) {
   }
 
   const args = montarArgs(msg, pasta, arquivoCookies, arquivoSaida);
-  log("yt-dlp", args.map((a) => (/[ "]/.test(a) ? JSON.stringify(a) : a)).join(" "));
+  log("yt-dlp", argsParaLog(args));
 
   const child = spawn(YTDLP, args, { stdio: ["ignore", "pipe", "pipe"], env: AMBIENTE });
   ativos.set(id, { child, arquivoSaida, arquivoCookies });

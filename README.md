@@ -1,6 +1,13 @@
 # Tarrafa
 
+[![Verificar](https://github.com/arnaldobatista/tarrafa/actions/workflows/verificar.yml/badge.svg)](https://github.com/arnaldobatista/tarrafa/actions/workflows/verificar.yml)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-2ea44f)](LICENSE)
+![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
+![Chrome Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)
+
 Extensão para Chrome que encontra vídeo e áudio em qualquer site e baixa para **a pasta que você escolher**, usando o `yt-dlp` e o `ffmpeg` da sua própria máquina.
+
+*In English: a Chrome extension for macOS that finds video and audio on any website and downloads it to any folder, using your own `yt-dlp` and `ffmpeg` through a small native messaging host. The docs are in Portuguese; issues and pull requests in English are welcome.*
 
 > Tarrafa é a rede de arremesso do pescador: você lança sobre a correnteza e recolhe o que estava passando. A extensão faz o mesmo com a página e com o tráfego de rede.
 
@@ -59,22 +66,32 @@ O `deno` é obrigatório para o YouTube: o site assina as URLs de mídia com um 
 
 ## Instalação
 
-1. Baixe ou clone este repositório.
-2. Dentro da pasta dele, rode:
+1. Clone este repositório e rode o instalador dentro dele:
 
    ```bash
+   git clone https://github.com/arnaldobatista/tarrafa.git
+   cd tarrafa
    ./install.sh
    ```
 
    O script encontra `node`, `yt-dlp`, `ffmpeg` e `deno`, copia o host para `~/Library/Application Support/Tarrafa/` e o registra em todos os navegadores compatíveis instalados.
 
-3. Abra `chrome://extensions`, ligue o **Modo do desenvolvedor**, clique em **Carregar sem compactação** e escolha a pasta `extension/`.
+2. Abra `chrome://extensions`, ligue o **Modo do desenvolvedor**, clique em **Carregar sem compactação** e escolha a pasta `extension/`.
 
 O ID da extensão é sempre `dmofiaiidmkialeopkpcknbaapkohfmn`, fixado pela chave pública no `manifest.json` — é isso que permite ao `install.sh` autorizá-la antes mesmo de você carregá-la.
 
 > **Por que o host é copiado para fora do repositório:** o macOS protege `~/Documents`, `~/Desktop` e `~/Downloads`, e o navegador não consegue executar um host nativo guardado ali. A falha aparece só como `Native host has exited`, sem nenhuma linha no log. Por isso, **se você editar `host/host.js`, rode `./install.sh` de novo.**
 
-> **Depois de atualizar os arquivos (`git pull` ou edição), recarregue a extensão.** As telas leem os arquivos novos na hora, mas o Chrome continua rodando o `background.js` anterior até a extensão ser recarregada. A Tarrafa percebe a diferença e mostra o botão **Recarregar extensão**; o ↻ em `chrome://extensions` faz o mesmo.
+## Atualizar
+
+```bash
+git pull
+./install.sh
+```
+
+Depois, recarregue a extensão (↻ em `chrome://extensions`). O `install.sh` pode rodar quantas vezes você quiser: ele só recopia o host e reescreve o registro.
+
+> **Por que recarregar:** as telas leem os arquivos novos na hora, mas o Chrome continua rodando o `background.js` anterior até a extensão ser recarregada. A Tarrafa percebe a diferença e mostra o botão **Recarregar extensão**.
 
 ## Uso
 
@@ -131,8 +148,11 @@ tail -30 ~/Library/Logs/tarrafa.log
 
 - Não há telemetria. As únicas requisições são para os próprios sites de onde você baixa — e para a base do SponsorBlock, se você ligar esse recurso.
 - Com **Usar cookies do navegador** ligado, a extensão lê os cookies do domínio do site (e do `google.com`, no caso do YouTube), grava um arquivo temporário com permissão `600`, entrega ao `yt-dlp` e o apaga assim que o download termina.
+- O log registra cada comando do `yt-dlp`, mas os valores de `Cookie` e `Authorization` aparecem como `[oculto]` — dá para colar o log numa issue sem expor sua sessão.
 - O host nativo só aceita conexões da extensão cujo ID está no seu registro (`allowed_origins`).
 - A chave privada que gera o ID (`host/key.pem`) não faz parte do repositório.
+
+Encontrou uma falha de segurança? Veja [SECURITY.md](SECURITY.md) — relate em particular, não numa issue.
 
 ## Desinstalar
 
@@ -159,6 +179,10 @@ install.sh           instala e registra o host
 uninstall.sh         remove tudo que o install.sh criou
 navegadores.sh       onde cada navegador procura hosts nativos
 docs/                capturas de tela (usadas aqui e avulsas)
+.github/             modelos de issue e pull request, verificação automática
+CHANGELOG.md         o que mudou em cada versão
+CONTRIBUTING.md      como preparar o ambiente e contribuir
+SECURITY.md          como relatar uma vulnerabilidade
 LICENSE              licença MIT
 ```
 
@@ -172,6 +196,10 @@ LICENSE              licença MIT
 ## Uso responsável
 
 A Tarrafa é uma ferramenta para uso pessoal. Baixe apenas conteúdo que você tem direito de baixar e respeite os termos de uso de cada site e os direitos autorais de quem produziu o conteúdo.
+
+## Contribuir
+
+Correções, sites novos e ideias são bem-vindos. O [CONTRIBUTING.md](CONTRIBUTING.md) explica como montar o ambiente, o ciclo de edição e o que conferir antes de abrir um pull request. As mudanças de cada versão ficam no [CHANGELOG.md](CHANGELOG.md).
 
 ## Licença
 

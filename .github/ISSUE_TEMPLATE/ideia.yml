@@ -1,0 +1,16 @@
+name: Ideia
+description: Sugira um recurso ou uma melhoria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Que problema isso resolve
+      description: Conte o caso de uso. Um exemplo real ajuda mais que a solução pronta.
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Como você imagina
+      description: Opcional. Tela, ajuste, comportamento.

@@ -1,0 +1,42 @@
+name: Verificar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Sintaxe do JavaScript
+        run: |
+          node --check host/host.js
+          node --check extension/background.js
+          node --input-type=module --check < extension/app.js
+
+      - name: Sintaxe dos scripts
+        run: bash -n install.sh uninstall.sh navegadores.sh
+
+      # O install.sh autoriza o ID de host/extid.txt; se a chave do manifest
+      # mudar sem ele, a extensão perde o acesso ao host sem aviso nenhum.
+      - name: Manifest e ID da extensão
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            import crypto from "node:crypto";
+            const m = JSON.parse(fs.readFileSync("extension/manifest.json", "utf8"));
+            const hash = crypto.createHash("sha256").update(Buffer.from(m.key, "base64")).digest("hex");
+            const id = [...hash.slice(0, 32)].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join("");
+            const esperado = fs.readFileSync("host/extid.txt", "utf8").trim();
+            if (id !== esperado) {
+              console.error(`o ID da chave (${id}) não bate com host/extid.txt (${esperado})`);
+              process.exit(1);
+            }
+            console.log(`${m.name} ${m.version}, ID ${id}`);
+          '

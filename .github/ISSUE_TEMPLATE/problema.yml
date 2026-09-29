@@ -1,0 +1,45 @@
+name: Problema
+description: Algo não funcionou como deveria
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrir, veja a seção [Solução de problemas](https://github.com/arnaldobatista/tarrafa#solução-de-problemas) do README e confirme que o `yt-dlp` está atualizado (`brew upgrade yt-dlp`).
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que aconteceu
+      description: O que você fez, o que esperava e o que apareceu. A mensagem de erro exata ajuda muito.
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Site
+      description: Domínio ou tipo de página (youtube.com, uma plataforma de cursos…). Não cole links privados nem com token.
+  - type: textarea
+    id: diagnostico
+    attributes:
+      label: Diagnóstico da tela Ajustes
+      description: As linhas de yt-dlp, ffmpeg e deno.
+      render: text
+  - type: textarea
+    id: log
+    attributes:
+      label: Últimas linhas do log
+      description: "Saída de `tail -30 ~/Library/Logs/tarrafa.log`. Cookies e tokens já aparecem como [oculto], mas revise as URLs antes de colar."
+      render: text
+  - type: input
+    id: navegador
+    attributes:
+      label: Navegador e versão
+      placeholder: Chrome 153, Brave 1.80…
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: Versão do macOS
+    validations:
+      required: true
